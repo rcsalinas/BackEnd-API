@@ -74,6 +74,29 @@ const getContratacionesByUserId = async (req, res, next) => {
 	}
 };
 
+const getContratacionByCurso = async (req, res, next) => {
+	const userId = req.params.userId;
+	const cursoId = req.params.cursoId;
+	let contratacion;
+	try {
+		contratacion = await Contratacion.findOne({
+			$and: [{ alumno: userId }, { curso: cursoId }],
+		})
+			.populate("curso")
+			.populate("alumno")
+			.populate("profesor");
+	} catch (err) {
+		const error = new HttpError("Fetching contrataciones failed, please try again later.", 500);
+		return next(error);
+	}
+
+	if (!contratacion) {
+		res.json(null);
+	} else {
+		res.json(contratacion.toObject({ getters: true }));
+	}
+};
+
 const finalizarContratacionPorId = async (req, res, next) => {
 	const contratacionId = req.params.contratacionId;
 
@@ -157,3 +180,4 @@ exports.getContratacionesByUserId = getContratacionesByUserId;
 exports.finalizarContratacionPorId = finalizarContratacionPorId;
 exports.aceptarContratacion = aceptarContratacion;
 exports.rechazarContratacion = rechazarContratacion;
+exports.getContratacionByCurso = getContratacionByCurso;

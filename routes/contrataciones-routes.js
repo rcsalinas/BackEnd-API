@@ -10,6 +10,8 @@ router.use(checkAuth);
 
 router.get("/user/:userId", contratacionesControllers.getContratacionesByUserId);
 
+router.get("/user/:userId/:cursoId", contratacionesControllers.getContratacionByCurso);
+
 router.patch("/:contratacionId/finalizar", contratacionesControllers.finalizarContratacionPorId);
 
 router.patch("/:contratacionId/aceptar", contratacionesControllers.aceptarContratacion);
