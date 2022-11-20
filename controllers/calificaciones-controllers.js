@@ -9,7 +9,7 @@ const Usuario = require("../models/user");
 const Curso = require("../models/curso");
 
 const createCalificacion = async (req, res, next) => {
-	const { alumno, curso, comentario, rating } = req.body;
+	const { alumno, curso, comentario, rating, profesor } = req.body;
 
 	let aux;
 	try {
@@ -33,6 +33,7 @@ const createCalificacion = async (req, res, next) => {
 		rating,
 		estado: false,
 		fecha: fecha,
+		profesor,
 	});
 
 	/*let cursoAux;
@@ -61,22 +62,55 @@ const createCalificacion = async (req, res, next) => {
 const getCalificacionesByUser = async (req, res, next) => {
 	const userId = req.params.userId;
 
-	let calificaciones;
+	let user;
 	try {
-		calificaciones = await Calificacion.find()
-			.populate({
-				path: "curso",
-				populate: {
-					path: "profesor",
-					match: {
-						id: userId,
-					},
-				},
-			})
-			.populate("alumno");
+		user = await Usuario.findById(userId);
 	} catch (err) {
-		const error = new HttpError("Fetching calificaciones failed, please try again later.", 500);
-		return next(err);
+		const error = new HttpError("Fetching calificaciones for this user id failed", 500);
+		return next(error);
+	}
+
+	let calificaciones;
+	if (user.tipo == "estudiante") {
+		try {
+			calificaciones = await Calificacion.find({ alumno: userId, estado: true })
+				.populate({
+					path: "curso",
+					populate: {
+						path: "profesor",
+						match: {
+							id: userId,
+						},
+					},
+				})
+				.populate("alumno");
+		} catch (err) {
+			const error = new HttpError(
+				"Fetching calificaciones failed, please try again later.",
+				500
+			);
+			return next(error);
+		}
+	} else {
+		try {
+			calificaciones = await Calificacion.find({ profesor: userId })
+				.populate({
+					path: "curso",
+					populate: {
+						path: "profesor",
+						match: {
+							id: userId,
+						},
+					},
+				})
+				.populate("alumno");
+		} catch (err) {
+			const error = new HttpError(
+				"Fetching calificaciones failed, please try again later.",
+				500
+			);
+			return next(error);
+		}
 	}
 
 	if (!calificaciones || calificaciones.length === 0) {
@@ -109,6 +143,37 @@ const getCalificacionesByCurso = async (req, res, next) => {
 	} else {
 		res.json(calificaciones.map((calificacion) => calificacion.toObject({ getters: true })));
 	}
+};
+
+const editarCalificacion = async (req, res, next) => {
+	const calificacionId = req.params.calificacionId;
+
+	const { comentario, rating } = req.body;
+	let calificacion;
+	try {
+		calificacion = await Calificacion.findById(calificacionId).populate("curso");
+	} catch (err) {
+		const error = new HttpError("Something went wrong, could find calificacion", 500);
+		return next(error);
+	}
+	if (rating != 0) {
+		calificacion.rating = rating;
+	}
+	if (comentario !== "") {
+		calificacion.comentario = comentario;
+	}
+
+	calificacion.estado = false;
+
+	try {
+		await calificacion.save();
+		calificacion.curso.calificaciones.pull(calificacion);
+		await calificacion.curso.save();
+	} catch (err) {
+		const error = new HttpError("Something went wrong, could not update calificacion", 500);
+		return next(error);
+	}
+	res.status(201).json("EXITO");
 };
 
 const aceptarCalificacion = async (req, res, next) => {
@@ -178,6 +243,37 @@ const obtenerPromedio = async (calificaciones) => {
 	return auxRating / aux;
 };
 
+const deleteCalificacion = async (req, res, next) => {
+	const calificacionId = req.params.calificacionId;
+	let calificacion;
+	try {
+		calificacion = await Calificacion.findById(calificacionId).populate("curso");
+	} catch (err) {
+		const error = new HttpError("Something went wrong, could not delete calificacion.", 500);
+		return next(error);
+	}
+	console.log(calificacion);
+	if (!calificacion) {
+		const error = new HttpError("Could not find calificacion for this id.", 404);
+		return next(error);
+	}
+
+	try {
+		const sess = await mongoose.startSession();
+		sess.startTransaction();
+
+		await calificacion.remove({ session: sess });
+		calificacion.curso.calificaciones.pull(calificacion);
+		await calificacion.curso.save({ session: sess });
+		await sess.commitTransaction();
+	} catch (err) {
+		const error = new HttpError("Something went wrong, could not delete calificacion.", 500);
+		return next(error);
+	}
+
+	res.status(200).json({ message: "Deleted calificacion." });
+};
+
 const rechazarCalificacion = async (req, res, next) => {
 	const calificacionId = req.params.calificacionId;
 	let calificacion;
@@ -221,3 +317,5 @@ exports.getCalificacionesByCurso = getCalificacionesByCurso;
 exports.createCalificacion = createCalificacion;
 exports.rechazarCalificacion = rechazarCalificacion;
 exports.aceptarCalificacion = aceptarCalificacion;
+exports.deleteCalificacion = deleteCalificacion;
+exports.editarCalificacion = editarCalificacion;

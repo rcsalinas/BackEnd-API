@@ -29,7 +29,12 @@ const createContratacion = async (req, res, next) => {
 	try {
 		contratacion = await Contratacion.find({ alumno: req.userData.userId, curso: cursoId });
 	} catch (err) {
-		const error = new HttpError("Ya creo una contratacion", 500);
+		const error = new HttpError("Error al crear contratacion", 500);
+		return next(error);
+	}
+
+	if (contratacion != null && contratacion.length > 0) {
+		const error = new HttpError("Ya existe una contratacion para este curso", 500);
 		return next(error);
 	}
 

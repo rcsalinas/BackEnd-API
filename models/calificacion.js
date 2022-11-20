@@ -9,6 +9,7 @@ const calificacionSchema = new Schema({
 	estado: { type: Boolean, required: true },
 	alumno: { type: mongoose.Types.ObjectId, required: true, ref: "Usuario" },
 	curso: { type: mongoose.Types.ObjectId, required: true, ref: "Curso" },
+	profesor: { type: mongoose.Types.ObjectId, required: true, ref: "Usuario" },
 });
 
 module.exports = mongoose.model("Calificacion", calificacionSchema);
