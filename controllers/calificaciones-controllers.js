@@ -121,7 +121,7 @@ const getCalificacionesByUser = async (req, res, next) => {
 };
 
 const getCalificacionesByCurso = async (req, res, next) => {
-	const cursoId = req.params.userId;
+	const cursoId = req.params.cursoId;
 
 	let calificaciones;
 	try {
