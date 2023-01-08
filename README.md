@@ -13,7 +13,6 @@
 # Introduccion
 Este proyecto es una página web llamada "Teachers Market", que se basa en conectar estudiantes y profesores particulares para la contratación de clases de diferentes materias. En la misma, también existe un sistema de calificación, puntuación y comentarios entre profesores y estudiantes. 
 Los estudiantes podrán registrarse, buscar materias individuales, grupales, calificar una materia y/o a un profesor. Mientras que, por otro lado, los profesores tendrán la posibilidad de registrarse, crear nuevos cursos, aceptar estudiantes y comentarios recibidos sobre sus cursos dictados.
-Esta página se realizó de forma didáctica con fines educativos para la materia de Aplicaciones Interctivas dictada en UADE durante el período de el 2do Cuatrimestre del 2022.
 
 # Requerimientos
 Los requerimientos para poder instalar y utilizar la aplicacion web son:
@@ -118,8 +117,3 @@ Diagrama de estructura de la base de datos de MongoDB:
 
 https://documenter.getpostman.com/view/17356630/2s8YsnYwim
 
-# Integrantes
-
-## Roberto Salinas
-## Diego Mosquera
-## Iara Orosco
